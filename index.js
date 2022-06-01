@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5555
 
 app.get('/copy', (req, res) => {
   try {
-    res.send(clipboard.readSync())
+    res.json(clipboard.readSync())
   } catch {
     res.sendStatus(200)
   }
