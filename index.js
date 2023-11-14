@@ -30,17 +30,29 @@ app.post('/paste', (req, res) => {
 
 io.on('connection', (socket) => {
   socket.emit('hello', 'world')
+  socket.on('copy', (data) => {
+    write(data)
+  })
 })
 
+let sockets = []
 watchClipboard((data) => {
   io.emit('copy', data)
+  sockets.emit('copy', data)
 })
 
 scan(PORT).then((ips) => {
   for (const ip of ips) {
-    const socket = client(`ws://${ip}:${PORT}`)
+    const socket = client(`http://${ip}:${PORT}`)
     socket.on('copy', (data) => {
       write(data)
+    })
+
+    sockets.push(socket)
+
+    socket.on('disconnect', () => {
+      console.log(`${ip} server disconnect`)
+      sockets = sockets.filter((_socket) => _socket !== socket)
     })
   }
 })
