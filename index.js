@@ -1,4 +1,4 @@
-import { readSync, write, writeSync } from 'clipboardy'
+import { readSync, writeSync } from 'clipboardy'
 import express from 'express'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
@@ -36,26 +36,29 @@ io.on('connection', (socket) => {
 })
 
 let sockets = []
-watchClipboard((data) => {
+const wc = watchClipboard((data) => {
   io.emit('copy', data)
   sockets.forEach((socket) => socket.emit('copy', data))
 })
 
-scan(PORT).then((ips) => {
-  for (const ip of ips) {
-    const socket = client(`http://${ip}:${PORT}`)
-    socket.on('copy', (data) => {
-      write(data)
-    })
+function write(data) {
+  wc.setClipboard(data)
+  writeSync(data)
+}
 
-    sockets.push(socket)
+for (const ip of await scan(PORT)) {
+  const socket = client(`http://${ip}:${PORT}`)
+  console.log(`${ip} server connect`)
+  socket.on('copy', (data) => {
+    write(data)
+  })
+  sockets.push(socket)
 
-    socket.on('disconnect', () => {
-      console.log(`${ip} server disconnect`)
-      sockets = sockets.filter((_socket) => _socket !== socket)
-    })
-  }
-})
+  socket.on('disconnect', () => {
+    console.log(`${ip} server disconnect`)
+    sockets = sockets.filter((_socket) => _socket !== socket)
+  })
+}
 
 server.listen(PORT, () =>
   console.log(`sever run in http://localhost:${PORT} ${new Date().toString()}`)

@@ -16,18 +16,19 @@ const checkPort = (ip, port) => {
     setTimeout(() => {
       socket.close()
       resolve(false)
-    }, 100)
+    }, 1000)
   })
 }
 
 const checkAllIps = async (subnet, port) => {
-  let ips = []
-  for (let i = 1; i <= 255; i++) {
-    const ip = `${subnet}.${i}`
-    const isOpen = await checkPort(ip, port)
-    if (isOpen) ips.push(ip)
-  }
-  return ips
+  const result = await Promise.all(
+    new Array(255).fill(0).map(async (_, i) => {
+      const ip = `${subnet}.${i + 1}`
+      const isOpen = await checkPort(ip, port)
+      return { ip, isOpen }
+    })
+  )
+  return result.filter(({ isOpen }) => isOpen).map(({ ip }) => ip)
 }
 
 // get local ip address
