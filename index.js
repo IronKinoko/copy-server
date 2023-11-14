@@ -38,7 +38,7 @@ io.on('connection', (socket) => {
 let sockets = []
 watchClipboard((data) => {
   io.emit('copy', data)
-  sockets.emit('copy', data)
+  sockets.forEach((socket) => socket.emit('copy', data))
 })
 
 scan(PORT).then((ips) => {
