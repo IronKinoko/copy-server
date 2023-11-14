@@ -29,9 +29,15 @@ app.post('/paste', (req, res) => {
 })
 
 io.on('connection', (socket) => {
+  console.log(`${socket.handshake.address} server connect`)
+
   socket.emit('hello', 'world')
   socket.on('copy', (data) => {
     write(data)
+  })
+
+  socket.on('disconnect', () => {
+    console.log(`${socket.handshake.address} server disconnect`)
   })
 })
 
@@ -50,7 +56,6 @@ for (const ip of await scan(PORT)) {
   const socket = client(`http://${ip}:${PORT}`)
   console.log(`${ip} server connect`)
   socket.on('copy', (data) => {
-    console.log("🚀 ~ file: index.js:53 ~ socket.on ~ data:", data)
     write(data)
   })
   sockets.push(socket)
