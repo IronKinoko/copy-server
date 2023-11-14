@@ -50,6 +50,7 @@ for (const ip of await scan(PORT)) {
   const socket = client(`http://${ip}:${PORT}`)
   console.log(`${ip} server connect`)
   socket.on('copy', (data) => {
+    console.log("🚀 ~ file: index.js:53 ~ socket.on ~ data:", data)
     write(data)
   })
   sockets.push(socket)
